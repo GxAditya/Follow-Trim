@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  username      String    @unique
+  platform      String    // "instagram" or "twitter"
+  accessToken   String
+  refreshToken  String?
+  following     Following[]
+  analytics     Analytics[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Following {
+  id              String    @id @default(uuid())
+  userId          String
+  followedUserId  String
+  username        String
+  followDate      DateTime  @default(now())
+  lastInteraction DateTime?
+  isMutual        Boolean   @default(false)
+  user            User      @relation(fields: [userId], references: [id])
+  engagementScore Float     @default(0)
+
+  @@unique([userId, followedUserId])
+}
+
+model Analytics {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  followCount Int
+  date        DateTime  @default(now())
+  platform    String
+
+  @@unique([userId, date, platform])
+}
